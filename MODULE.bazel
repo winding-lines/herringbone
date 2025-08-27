@@ -1,0 +1,23 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+
+module(name = "herringbone")
+
+# Add rules_mojo dependency using Bzlmod
+bazel_dep(name = "rules_mojo", version = "0.6.0")
+
+# Add Firebolt library using git_override since it's not in BCR
+bazel_dep(name = "firebolt", version = "0.0.0")
+
+# Override firebolt with GitHub repository and patch with BUILD files
+git_override(
+    module_name = "firebolt",
+    remote = "https://github.com/kszucs/firebolt.git",
+    commit = "9ecc798ddb90ca107ab028a6e5477bfb5310e5da",  # Use latest commit, or specify a specific commit hash
+    patches = ["//:firebolt.patch"],
+    patch_strip = 1,
+)

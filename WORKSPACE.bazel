@@ -1,0 +1,2 @@
+# DEPRECATED: This file is no longer used with Bzlmod.
+# All dependencies have been migrated to MODULE.bazel

@@ -1,0 +1,27 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/MODULE.bazel
+@@ -0,0 +1,5 @@
++module(name = "firebolt")
++
++# Add rules_mojo dependency
++bazel_dep(name = "rules_mojo", version = "0.6.0")
++
+diff --git a/BUILD.bazel b/BUILD.bazel
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/BUILD.bazel
+@@ -0,0 +1,10 @@
++load("@rules_mojo//mojo:mojo_library.bzl", "mojo_library")
++
++# Firebolt Mojo library
++mojo_library(
++    name = "firebolt",
++    srcs = glob(["firebolt/**/*.mojo"]),
++    visibility = ["//visibility:public"],
++)
++
++

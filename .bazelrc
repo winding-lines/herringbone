@@ -1,0 +1,18 @@
+# Optimization flags
+build --compilation_mode=opt
+build --copt=-O2
+
+# Use C++17 standard
+build --cxxopt=-std=c++17
+
+# Show test output for failures
+test --test_output=errors
+
+# Enable disk cache
+build --disk_cache=~/.cache/bazel
+
+# Enable remote cache if available
+# build --remote_cache=grpc://localhost:9092
+
+# Platform settings
+build --incompatible_enable_cc_toolchain_resolution

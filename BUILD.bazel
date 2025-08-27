@@ -1,0 +1,26 @@
+load("@rules_mojo//mojo:mojo_binary.bzl", "mojo_binary")
+load("@rules_mojo//mojo:mojo_library.bzl", "mojo_library")
+
+
+# Example Mojo library
+mojo_library(
+    name = "math_utils",
+    srcs = ["src/math_utils.mojo"],
+    visibility = ["//visibility:public"],
+)
+
+# Binary that uses the library
+mojo_binary(
+    name = "calculator",
+    srcs = ["src/calculator.mojo"],
+    deps = [":math_utils"],
+    visibility = ["//visibility:public"],
+)
+
+# Binary that uses Firebolt library
+mojo_binary(
+    name = "firebolt_example",
+    srcs = ["src/firebolt_example.mojo"],
+    deps = ["@firebolt//:firebolt"],
+    visibility = ["//visibility:public"],
+)
