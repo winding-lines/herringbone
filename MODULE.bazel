@@ -17,7 +17,7 @@ bazel_dep(name = "firebolt", version = "0.0.0")
 git_override(
     module_name = "firebolt",
     remote = "https://github.com/kszucs/firebolt.git",
-    commit = "9ecc798ddb90ca107ab028a6e5477bfb5310e5da",  # Use latest commit, or specify a specific commit hash
+    commit = "d66493ca7da83537ef52d11a7b9b8985e03a62fb",  # Use latest commit, or specify a specific commit hash
     patches = ["//:firebolt.patch"],
     patch_strip = 1,
 )
