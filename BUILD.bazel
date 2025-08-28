@@ -3,21 +3,6 @@ load("@rules_mojo//mojo:mojo_library.bzl", "mojo_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 
-# Example Mojo library
-mojo_library(
-    name = "math_utils",
-    srcs = ["src/math_utils.mojo"],
-    visibility = ["//visibility:public"],
-)
-
-# Binary that uses the library
-mojo_binary(
-    name = "calculator",
-    srcs = ["src/calculator.mojo"],
-    deps = [":math_utils"],
-    visibility = ["//visibility:public"],
-)
-
 # Binary that uses Firebolt library
 mojo_binary(
     name = "firebolt_example",
@@ -26,17 +11,10 @@ mojo_binary(
     visibility = ["//visibility:public"],
 )
 
-# Example Python library
-py_library(
-    name = "python_utils",
-    srcs = ["src/python_utils.py"],
-    visibility = ["//visibility:public"],
-)
-
-# Example Python binary
+# Create a Parquet library for integration testing.
 py_binary(
-    name = "hello_python",
-    srcs = ["src/hello_python.py"],
-    deps = [":python_utils"],
+    name = "create_parquet",
+    srcs = ["src/create_parquet.py"],
+    deps = ["@pypi//pyarrow"],
     visibility = ["//visibility:public"],
 )

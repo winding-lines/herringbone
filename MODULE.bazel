@@ -13,6 +13,18 @@ bazel_dep(name = "rules_mojo", version = "0.6.0")
 # Add rules_python dependency for Python support
 bazel_dep(name = "rules_python", version = "1.0.0")
 
+# Configure Python interpreter and pip dependencies
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.11")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pypi",
+    python_version = "3.11",
+    requirements_lock = "//:requirements_lock.txt",
+)
+use_repo(pip, "pypi")
+
 # Add Firebolt library using git_override since it's not in BCR
 bazel_dep(name = "firebolt", version = "0.0.0")
 
