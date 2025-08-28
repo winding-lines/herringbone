@@ -1,5 +1,6 @@
 load("@rules_mojo//mojo:mojo_binary.bzl", "mojo_binary")
 load("@rules_mojo//mojo:mojo_library.bzl", "mojo_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 
 # Example Mojo library
@@ -22,5 +23,20 @@ mojo_binary(
     name = "firebolt_example",
     srcs = ["src/firebolt_example.mojo"],
     deps = ["@firebolt//:firebolt"],
+    visibility = ["//visibility:public"],
+)
+
+# Example Python library
+py_library(
+    name = "python_utils",
+    srcs = ["src/python_utils.py"],
+    visibility = ["//visibility:public"],
+)
+
+# Example Python binary
+py_binary(
+    name = "hello_python",
+    srcs = ["src/hello_python.py"],
+    deps = [":python_utils"],
     visibility = ["//visibility:public"],
 )

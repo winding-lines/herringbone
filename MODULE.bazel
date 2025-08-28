@@ -10,6 +10,9 @@ module(name = "herringbone")
 # Add rules_mojo dependency using Bzlmod
 bazel_dep(name = "rules_mojo", version = "0.6.0")
 
+# Add rules_python dependency for Python support
+bazel_dep(name = "rules_python", version = "1.0.0")
+
 # Add Firebolt library using git_override since it's not in BCR
 bazel_dep(name = "firebolt", version = "0.0.0")
 
