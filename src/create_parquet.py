@@ -3,6 +3,8 @@
 import os
 import pyarrow as pa
 from pyarrow import parquet
+from pathlib import Path
+
 
 def create_test_table() -> pa.Table:
     """Create a test table with various data types for testing."""
@@ -15,11 +17,14 @@ def create_test_table() -> pa.Table:
 
     # Lists of primitives
     list_int_values = pa.array([[1, 2], [3, 4, 5], [], [6], [7, 8, 9, 10]])
-    list_float_values = pa.array([[1.1, 2.2], [3.3], [4.4, 5.5, 6.6], [], [7.7]])
-    list_str_values = pa.array([["a", "b"], ["c"], [], ["d", "e"], ["f", "g", "h"]])
+    list_float_values = pa.array(
+        [[1.1, 2.2], [3.3], [4.4, 5.5, 6.6], [], [7.7]])
+    list_str_values = pa.array(
+        [["a", "b"], ["c"], [], ["d", "e"], ["f", "g", "h"]])
 
     # Struct type
-    struct_type = pa.struct([("field_a", pa.int32()), ("field_b", pa.string())])
+    struct_type = pa.struct(
+        [("field_a", pa.int32()), ("field_b", pa.string())])
     struct_values = pa.array(
         [
             {"field_a": 1, "field_b": "foo"},
@@ -63,12 +68,14 @@ def create_test_table() -> pa.Table:
         }
     )
     return table
-def create_test_parquet(output_path="test_data.parquet"):
+
+
+def create_sample_parquet(output_path: Path):
     """Create a parquet file with various data types for testing."""
     table = create_test_table()
 
     # Write to parquet file
-    parquet.write_table(table, output_path)
+    parquet.write_table(table, str(output_path))
     print(f"Created parquet file at: {output_path}")
 
     return output_path
@@ -76,7 +83,11 @@ def create_test_parquet(output_path="test_data.parquet"):
 
 if __name__ == "__main__":
     # Ensure the directory exists
-    os.makedirs("test_data", exist_ok=True)
+    print(os.environ)
+    folder = Path(os.environ["BUILD_WORKING_DIRECTORY"]
+                  ) if "BUILD_WORKING_DIRECTORY" in os.environ else Path.cwd()
+    test_data = folder / "test_data"
+    test_data.mkdir(parents=True, exist_ok=True)
 
     # Create the test file in the test_data directory
-    create_test_parquet("test_data/test_file.parquet")
+    create_sample_parquet(test_data/"test_file.parquet")

@@ -2,19 +2,36 @@ load("@rules_mojo//mojo:mojo_binary.bzl", "mojo_binary")
 load("@rules_mojo//mojo:mojo_library.bzl", "mojo_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
-
 # Binary that uses Firebolt library
 mojo_binary(
     name = "firebolt_example",
     srcs = ["src/firebolt_example.mojo"],
-    deps = ["@firebolt//:firebolt"],
     visibility = ["//visibility:public"],
+    deps = ["@firebolt"],
 )
 
 # Create a Parquet library for integration testing.
 py_binary(
     name = "create_parquet",
     srcs = ["src/create_parquet.py"],
-    deps = ["@pypi//pyarrow"],
     visibility = ["//visibility:public"],
+    deps = ["@pypi//pyarrow"],
+)
+
+mojo_binary(
+    name = "list_parquet",
+    srcs = ["src/list_parquet.mojo"],
+    copts = [
+        # Note: asan options fail at link time.
+        # "--sanitize",
+        # "address",
+        # "--shared-libasan",
+        # Note: g2 fails to produce an executable and g1 does not provide additional information compared to no option.
+        "-g1",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@firebolt",
+        "@pypi//pyarrow",
+    ],
 )
