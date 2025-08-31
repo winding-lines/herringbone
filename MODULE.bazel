@@ -13,6 +13,19 @@ bazel_dep(name = "rules_mojo", version = "0.6.0")
 # Add rules_python dependency for Python support
 bazel_dep(name = "rules_python", version = "1.0.0")
 
+include("//bazel:mojo.MODULE.bazel")
+
+register_toolchains("@mojo_toolchains//...")
+
+# Use a non released version of the rules_mojo module.
+archive_override(
+    module_name = "rules_mojo",
+    strip_prefix = "rules_mojo-1d3ff3dd7066c682670a42a03c34c58504c7fe55",
+    urls = [
+        "https://github.com/modular/rules_mojo/archive/1d3ff3dd7066c682670a42a03c34c58504c7fe55.tar.gz",
+    ],
+)
+
 # Configure Python interpreter and pip dependencies
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(python_version = "3.11")
@@ -31,7 +44,7 @@ bazel_dep(name = "firebolt", version = "0.0.0")
 # Override firebolt with GitHub repository and patch with BUILD files
 git_override(
     module_name = "firebolt",
-    commit = "6b55241b55ce34544447f82c2d31ddb2461b4892",  # Use latest commit, or specify a specific commit hash
+    commit = "2322efbf8d1bd1465822cc18c2ccdf30d6248a75",  # Use latest commit, or specify a specific commit hash
     patch_strip = 1,
     patches = ["//:firebolt.patch"],
     remote = "https://github.com/kszucs/firebolt.git",
