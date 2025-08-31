@@ -82,8 +82,7 @@ def create_sample_parquet(output_path: Path):
 
 
 if __name__ == "__main__":
-    # Ensure the directory exists
-    print(os.environ)
+    # Use the bazel folder if present, otherwise the current folder.
     folder = Path(os.environ["BUILD_WORKING_DIRECTORY"]
                   ) if "BUILD_WORKING_DIRECTORY" in os.environ else Path.cwd()
     test_data = folder / "test_data"
