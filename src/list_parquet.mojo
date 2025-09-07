@@ -4,9 +4,9 @@ from memory import ArcPointer
 from testing import assert_equal, assert_true, assert_false
 from firebolt.c_data import ArrowArrayStream, CArrowSchema, CArrowArray
 from firebolt.arrays.base import ArrayData
-from firebolt.arrays import primitive
+from firebolt.arrays import primitive, nested
 from firebolt.buffers import Buffer
-from firebolt.dtypes import DataType
+from firebolt.dtypes import DataType, bool_
 from python import Python
 
 from io.write import Writable, Writer
@@ -31,6 +31,16 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
         writer.write(e)
     writer.write("]\n")
     
+fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: nested.ListArray):
+    """Write one of the StringArray columns to the writer."""
+    try:
+        writer.write("  {}=[ ".format(name))
+        for i in range(length):
+                writer.write("\"{}\", ".format(col.unsafe_get(i)))
+    except e:
+        writer.write(e)
+    writer.write("]\n")
+
 @fieldwise_init
 struct TopArray(Writable):
     """More easily access the data in the parquet file.
@@ -41,16 +51,25 @@ struct TopArray(Writable):
     var int_col: primitive.Int32Array
     var float_col: primitive.Float32Array
     var str_col: primitive.StringArray
+    var bool_col: primitive.BoolArray
+    var list_int_col: nested.ListArray
+    var list_float_col: nested.ListArray
 
     @staticmethod
     def from_c_arrow_array(c_arrow_array: CArrowArray, schema: DataType) -> TopArray:
         """Build a TopArray from an Arrow array returned through the PyCapsule."""
         var array_data = c_arrow_array.to_array(schema)
-
+        var field_mapping: Dict[String,Int] = {}
+        for index, field in enumerate(schema.fields):
+            field_mapping[field.name] = index
+        ref children = array_data.children
         return TopArray(length=Int(c_arrow_array.length), 
-                        int_col=array_data.children[0][].as_int32(),
-                        float_col = array_data.children[1][].as_float32(),
-                        str_col = array_data.children[2][].as_string(),
+                        int_col=children[field_mapping["int_col"]][].as_int32(),
+                        float_col = children[field_mapping["float_col"]][].as_float32(),
+                        str_col = children[field_mapping["str_col"]][].as_string(),
+                        bool_col = children[field_mapping["bool_col"]][].as_primitive[bool_](),
+                        list_int_col = children[field_mapping["list_int_col"]][].as_list(),
+                        list_float_col = children[field_mapping["list_float_col"]][].as_list(),
         )
 
 
@@ -69,6 +88,9 @@ struct TopArray(Writable):
         write_one_col_to(writer, "int_col", self.length, self.int_col)
         write_one_col_to(writer, "float_col", self.length, self.float_col)
         write_one_col_to(writer, "str_col", self.length, self.str_col)
+        write_one_col_to(writer, "bool_col", self.length, self.bool_col)
+        write_one_col_to(writer, "list_int_col", self.length, self.list_int_col)
+        write_one_col_to(writer, "list_float_col", self.length, self.list_float_col)
 
         writer.write(")")
 
