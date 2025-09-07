@@ -38,14 +38,4 @@ pip.parse(
 )
 use_repo(pip, "pypi")
 
-# Add Firebolt library using git_override since it's not in BCR
-bazel_dep(name = "firebolt", version = "0.0.0")
-
-# Override firebolt with GitHub repository and patch with BUILD files
-git_override(
-    module_name = "firebolt",
-    commit = "7e99d69233292704a487feb648f87a2d5b227a85",  # Use latest commit, or specify a specific commit hash
-    patch_strip = 1,
-    patches = ["//:firebolt.patch"],
-    remote = "https://github.com/kszucs/firebolt.git",
-)
+include("//bazel:firebolt.MODULE.bazel")

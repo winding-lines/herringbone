@@ -1,0 +1,12 @@
+
+# Add Firebolt library using git_override since it's not in BCR
+bazel_dep(name = "firebolt", version = "0.0.0")
+
+# Override firebolt with GitHub repository and patch with BUILD files
+git_override(
+    module_name = "firebolt",
+    commit = "3a47eaafc234c57dfae5bde8efaba53332890a69",  # Use latest commit, or specify a specific commit hash
+    patch_strip = 1,
+    patches = ["//:firebolt.patch"],
+    remote = "https://github.com/kszucs/firebolt.git",
+)

@@ -4,7 +4,7 @@ from memory import ArcPointer
 from testing import assert_equal, assert_true, assert_false
 from firebolt.c_data import ArrowArrayStream, CArrowSchema, CArrowArray
 from firebolt.arrays.base import ArrayData
-from firebolt.arrays import primitive, nested
+from firebolt.arrays import primitive, nested, binary
 from firebolt.buffers import Buffer
 from firebolt.dtypes import DataType, bool_
 from python import Python
@@ -32,11 +32,16 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
     writer.write("]\n")
     
 fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: nested.ListArray):
-    """Write one of the StringArray columns to the writer."""
+    """Write one of the ListArray columns to the writer."""
     try:
         writer.write("  {}=[ ".format(name))
         for i in range(length):
-                writer.write("\"{}\", ".format(col.unsafe_get(i)))
+                var element = col.unsafe_get(i)
+                if element.dtype.is_string():
+                    writer.write(binary.StringArray(element))
+                    writer.write(", ")
+                    continue
+                writer.write("\"{}\", ".format(element))
     except e:
         writer.write(e)
     writer.write("]\n")
@@ -54,6 +59,7 @@ struct TopArray(Writable):
     var bool_col: primitive.BoolArray
     var list_int_col: nested.ListArray
     var list_float_col: nested.ListArray
+    var list_str_col: nested.ListArray
 
     @staticmethod
     def from_c_arrow_array(c_arrow_array: CArrowArray, schema: DataType) -> TopArray:
@@ -70,6 +76,7 @@ struct TopArray(Writable):
                         bool_col = children[field_mapping["bool_col"]][].as_primitive[bool_](),
                         list_int_col = children[field_mapping["list_int_col"]][].as_list(),
                         list_float_col = children[field_mapping["list_float_col"]][].as_list(),
+                        list_str_col = children[field_mapping["list_str_col"]][].as_list(),
         )
 
 
@@ -91,6 +98,7 @@ struct TopArray(Writable):
         write_one_col_to(writer, "bool_col", self.length, self.bool_col)
         write_one_col_to(writer, "list_int_col", self.length, self.list_int_col)
         write_one_col_to(writer, "list_float_col", self.length, self.list_float_col)
+        write_one_col_to(writer, "list_str_col", self.length, self.list_str_col)
 
         writer.write(")")
 
