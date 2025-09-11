@@ -40,8 +40,10 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
                 if element.dtype.is_string():
                     writer.write(binary.StringArray(element))
                     writer.write(", ")
-                    continue
-                writer.write("\"{}\", ".format(element))
+                elif element.dtype.is_numeric():
+                    writer.write("[{}], ".format(element))
+                else:
+                    writer.write("Can't handle {}".format(element.dtype))
     except e:
         writer.write(e)
     writer.write("]\n")
