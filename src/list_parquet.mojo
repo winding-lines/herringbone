@@ -38,10 +38,10 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
         for i in range(length):
                 var element = col.unsafe_get(i)
                 if element.dtype.is_string():
-                    writer.write(binary.StringArray(element))
+                    writer.write(binary.StringArray(element^))
                     writer.write(", ")
                 elif element.dtype.is_numeric():
-                    writer.write("[{}], ".format(element))
+                    writer.write("[{}], ".format(element^))
                 else:
                     writer.write("Can't handle {}".format(element.dtype))
     except e:
@@ -63,24 +63,26 @@ struct TopArray(Writable):
     var list_float_col: nested.ListArray
     var list_str_col: nested.ListArray
 
-    @staticmethod
-    def from_c_arrow_array(c_arrow_array: CArrowArray, schema: DataType) -> TopArray:
-        """Build a TopArray from an Arrow array returned through the PyCapsule."""
-        var array_data = c_arrow_array.to_array(schema)
+    def __init__(out self, var array_data: ArrayData, schema: DataType, length: Int):
         var field_mapping: Dict[String,Int] = {}
         for index, field in enumerate(schema.fields):
             field_mapping[field.name] = index
         ref children = array_data.children
-        return TopArray(length=Int(c_arrow_array.length), 
-                        int_col=children[field_mapping["int_col"]][].as_int32(),
-                        float_col = children[field_mapping["float_col"]][].as_float32(),
-                        str_col = children[field_mapping["str_col"]][].as_string(),
-                        bool_col = children[field_mapping["bool_col"]][].as_primitive[bool_](),
-                        list_int_col = children[field_mapping["list_int_col"]][].as_list(),
-                        list_float_col = children[field_mapping["list_float_col"]][].as_list(),
-                        list_str_col = children[field_mapping["list_str_col"]][].as_list(),
+        return TopArray(length=length, 
+                        int_col=children[field_mapping["int_col"]][].copy().as_int32(),
+                        float_col = children[field_mapping["float_col"]][].copy().as_float32(),
+                        str_col = children[field_mapping["str_col"]][].copy().as_string(),
+                        bool_col = children[field_mapping["bool_col"]][].copy().as_primitive[bool_](),
+                        list_int_col = children[field_mapping["list_int_col"]][].copy().as_list(),
+                        list_float_col = children[field_mapping["list_float_col"]][].copy().as_list(),
+                        list_str_col = children[field_mapping["list_str_col"]][].copy().as_list(),
         )
 
+    @staticmethod
+    def from_c_arrow_array(c_arrow_array: CArrowArray, schema: DataType) -> TopArray:
+        """Build a TopArray from an Arrow array returned through the PyCapsule."""
+        var array_data = c_arrow_array.to_array(schema)
+        return TopArray(array_data^, schema, Int(c_arrow_array.length))
 
 
     fn write_to[W: Writer](self, mut writer: W):
@@ -132,10 +134,10 @@ fn validate_schema(array_stream: ArrowArrayStream) raises -> DataType:
     ]
     assert_equal(len(schema.fields), len(expected_field_names), "The number of schema fields {} different from expected ones {}".format(len(schema.fields), len(expected_field_names)))
     for field_index in range(len(expected_field_names)):
-        field = schema.fields[field_index]
-        expected_name = expected_field_names[field_index]
+        ref field = schema.fields[field_index]
+        ref expected_name = expected_field_names[field_index]
         assert_equal(field.name, expected_name)
-    return schema
+    return schema^
 
 fn validate_first_array_stream(c_arrow_array: CArrowArray, schema: DataType) raises -> None:
     assert_equal(c_arrow_array.length, 5)
