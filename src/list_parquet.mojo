@@ -48,6 +48,18 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
         writer.write(e)
     writer.write("]\n")
 
+fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: nested.StructArray):
+    """Write a StructArray column to the writer."""
+    try:
+        writer.write("  {}={{\n".format(name))
+        for field in col.fields:
+                writer.write("    {}= ".format(field.name))
+                writer.write(col.unsafe_get(field.name))
+                writer.write(",\n")
+    except e:
+        writer.write(e)
+    writer.write("  }\n")
+
 @fieldwise_init
 struct TopArray(Writable):
     """More easily access the data in the parquet file.
@@ -62,6 +74,7 @@ struct TopArray(Writable):
     var list_int_col: nested.ListArray
     var list_float_col: nested.ListArray
     var list_str_col: nested.ListArray
+    var struct_col: nested.StructArray
 
     def __init__(out self, var array_data: ArrayData, schema: DataType, length: Int):
         var field_mapping: Dict[String,Int] = {}
@@ -76,6 +89,7 @@ struct TopArray(Writable):
                         list_int_col = children[field_mapping["list_int_col"]][].copy().as_list(),
                         list_float_col = children[field_mapping["list_float_col"]][].copy().as_list(),
                         list_str_col = children[field_mapping["list_str_col"]][].copy().as_list(),
+                        struct_col = nested.StructArray(data=children[field_mapping["struct_col"]][].copy()),
         )
 
     @staticmethod
@@ -103,6 +117,7 @@ struct TopArray(Writable):
         write_one_col_to(writer, "list_int_col", self.length, self.list_int_col)
         write_one_col_to(writer, "list_float_col", self.length, self.list_float_col)
         write_one_col_to(writer, "list_str_col", self.length, self.list_str_col)
+        write_one_col_to(writer, "struct_col", self.length, self.struct_col)
 
         writer.write(")")
 
