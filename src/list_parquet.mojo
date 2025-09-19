@@ -42,6 +42,8 @@ fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, co
                     writer.write(", ")
                 elif element.dtype.is_numeric():
                     writer.write("[{}], ".format(element^))
+                elif element.dtype.is_struct():
+                    write_one_col_to(writer, "", length, nested.StructArray(data=element.copy()))
                 else:
                     writer.write("Can't handle {}".format(element.dtype))
     except e:
@@ -75,6 +77,7 @@ struct TopArray(Writable):
     var list_float_col: nested.ListArray
     var list_str_col: nested.ListArray
     var struct_col: nested.StructArray
+    var list_struct_col: nested.ListArray
 
     def __init__(out self, var array_data: ArrayData, schema: DataType, length: Int):
         var field_mapping: Dict[String,Int] = {}
@@ -90,6 +93,7 @@ struct TopArray(Writable):
                         list_float_col = children[field_mapping["list_float_col"]][].copy().as_list(),
                         list_str_col = children[field_mapping["list_str_col"]][].copy().as_list(),
                         struct_col = nested.StructArray(data=children[field_mapping["struct_col"]][].copy()),
+                        list_struct_col = children[field_mapping["list_struct_col"]][].copy().as_list(),
         )
 
     @staticmethod
@@ -118,6 +122,7 @@ struct TopArray(Writable):
         write_one_col_to(writer, "list_float_col", self.length, self.list_float_col)
         write_one_col_to(writer, "list_str_col", self.length, self.list_str_col)
         write_one_col_to(writer, "struct_col", self.length, self.struct_col)
+        write_one_col_to(writer, "list_struct_col", self.length, self.list_struct_col)
 
         writer.write(")")
 
