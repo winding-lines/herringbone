@@ -3,64 +3,14 @@ from pathlib import cwd, Path
 from memory import ArcPointer
 from testing import assert_equal, assert_true, assert_false
 from firebolt.c_data import ArrowArrayStream, CArrowSchema, CArrowArray
-from firebolt.arrays.base import ArrayData
+from firebolt.arrays.base import ArrayData, Array
 from firebolt.arrays import primitive, nested, binary
 from firebolt.buffers import Buffer
 from firebolt.dtypes import DataType, bool_
+from firebolt.io.formatter import Formatter
 from python import Python
 
 from io.write import Writable, Writer
-
-fn write_one_col_to[W: Writer, T: DataType](mut writer: W, name: StringSlice, length: Int, col: primitive.PrimitiveArray[T]):
-    """Write one of the PrimitiveArray columns to the writer."""
-    try:
-        writer.write("  {}=[ ".format(name))
-        for i in range(length):
-                writer.write("{}, ".format(col.unsafe_get(i)))
-    except e:
-        writer.write(e)
-    writer.write("]\n")
-
-fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: primitive.StringArray):
-    """Write one of the StringArray columns to the writer."""
-    try:
-        writer.write("  {}=[ ".format(name))
-        for i in range(length):
-                writer.write("\"{}\", ".format(col.unsafe_get(i)))
-    except e:
-        writer.write(e)
-    writer.write("]\n")
-    
-fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: nested.ListArray):
-    """Write one of the ListArray columns to the writer."""
-    try:
-        writer.write("  {}=[ ".format(name))
-        for i in range(length):
-                var element = col.unsafe_get(i)
-                if element.dtype.is_string():
-                    writer.write(binary.StringArray(element^))
-                    writer.write(", ")
-                elif element.dtype.is_numeric():
-                    writer.write("[{}], ".format(element^))
-                elif element.dtype.is_struct():
-                    write_one_col_to(writer, "", length, nested.StructArray(data=element.copy()))
-                else:
-                    writer.write("Can't handle {}".format(element.dtype))
-    except e:
-        writer.write(e)
-    writer.write("]\n")
-
-fn write_one_col_to[W: Writer](mut writer: W, name: StringSlice, length: Int, col: nested.StructArray):
-    """Write a StructArray column to the writer."""
-    try:
-        writer.write("  {}={{\n".format(name))
-        for field in col.fields:
-                writer.write("    {}= ".format(field.name))
-                writer.write(col.unsafe_get(field.name))
-                writer.write(",\n")
-    except e:
-        writer.write(e)
-    writer.write("  }\n")
 
 @fieldwise_init
 struct TopArray(Writable):
@@ -113,18 +63,42 @@ struct TopArray(Writable):
         Args:
             writer: The object to write to.
         """
-        writer.write("TopArray(\n")
-        write_one_col_to(writer, "int_col", self.length, self.int_col)
-        write_one_col_to(writer, "float_col", self.length, self.float_col)
-        write_one_col_to(writer, "str_col", self.length, self.str_col)
-        write_one_col_to(writer, "bool_col", self.length, self.bool_col)
-        write_one_col_to(writer, "list_int_col", self.length, self.list_int_col)
-        write_one_col_to(writer, "list_float_col", self.length, self.list_float_col)
-        write_one_col_to(writer, "list_str_col", self.length, self.list_str_col)
-        write_one_col_to(writer, "struct_col", self.length, self.struct_col)
-        write_one_col_to(writer, "list_struct_col", self.length, self.list_struct_col)
+        var formatter = Formatter()
+        try:
+            writer.write("TopArray(\n")
+            writer.write("  {}=".format("int_col"))
+            formatter.format(writer, self.int_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("float_col"))
+            formatter.format(writer, self.float_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("str_col"))
+            formatter.format(writer, self.str_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("bool_col"))
+            formatter.format(writer, self.bool_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("list_int_col"))
+            formatter.format(writer, self.list_int_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("list_float_col"))
+            formatter.format(writer, self.list_float_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("list_str_col"))
+            formatter.format(writer, self.list_str_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("struct_col"))
+            formatter.format(writer, self.struct_col)
+            writer.write(",\n")
+            writer.write("  {}=".format("list_struct_col"))
+            formatter.format(writer, self.list_struct_col)
+            writer.write(",\n")
 
-        writer.write(")")
+
+            writer.write(")")
+        except e:
+            writer.write(e)
+
 
 fn validate_schema(array_stream: ArrowArrayStream) raises -> DataType:
     """Validate that the schema matches expectations.
